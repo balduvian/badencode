@@ -11,11 +11,10 @@ import javax.imageio.ImageIO;
 
 public class Compress {
 
-	//"C:\\Users\\Emmett\\Desktop\\whycube\\tumblr_oj6nlcL8mj1tm904wo1_400.png"
 	BufferedImage[] patterns;
 	BufferedImage origin;
 	BufferedImage after;
-	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\colorful.jpg";
+	String path = "C:\\Users\\ecoughlin7190\\Desktop\\8.jpg";
 	String opath;
 	int uni = 8;
 	
@@ -58,75 +57,6 @@ public class Compress {
 			}
 		}
 		return t/64;
-	}
-	
-	public void stest(){
-		
-	}
-	
-	public void ftest(boolean inverse){
-		//
-		int[] used = new int[patterns.length];
-		//
-		int it = 0;
-		if(inverse){
-			it = 2;
-		}else{
-			it = 1;
-		}
-		BufferedImage out = null;
-		try{
-			out = ImageIO.read(new File(path));
-		}catch(Exception ex){}
-		//resize the image to fit 8*8 (uni)
-		BufferedImage res = new BufferedImage((int)(Math.floor(out.getWidth()/uni)*uni),(int)(Math.floor(out.getHeight()/uni)*uni),BufferedImage.TYPE_BYTE_BINARY);
-		Graphics2D g = res.createGraphics();
-		g.drawImage(out,0,0,res.getWidth(),res.getHeight(),null);
-		//havize it
-		res = unihav(res);
-		//begin the FOR LOOP!
-		for(int ty=0;ty<res.getHeight()/uni;ty++){//tile x and y
-			for(int tx=0;tx<res.getWidth()/uni;tx++){
-				int[] best = {0,0};//best pattern for tile {how much by, what pattern}
-				for(int i=0;i<it;i++){//inverse
-					for(int p=0;p<patterns.length;p++){//patern
-						int sofar = 0;
-						for(int y=0;y<uni;y++){//sub x and y
-							for(int x=0;x<uni;x++){
-								if(i==0){
-									if(res.getRGB(tx*uni+x,ty*uni+y)==patterns[p].getRGB(x,y)){
-										sofar++;
-									}
-								}else{
-									if(res.getRGB(tx*uni+x,ty*uni+y)!=patterns[p].getRGB(x,y)){
-										sofar++;
-									}
-								}
-							}
-						}
-						if(sofar>best[0]){
-							best = new int[]{sofar,p+(i*patterns.length)};
-						}
-					}
-				}
-				if(best[1]<patterns.length){
-					g.drawImage(patterns[best[1]], tx*uni, ty*uni, null);
-					used[best[1]]++;
-				}else{
-					g.drawImage(inv(patterns[best[1]-patterns.length]), tx*uni, ty*uni, null);
-					used[best[1]-patterns.length]++;
-				}
-				System.out.println("done with "+((ty*res.getWidth()/uni)+tx+1)+" out of "+((res.getWidth()/uni)*(res.getHeight()/uni)));
-			}
-		}
-		//
-		for(int i=0;i<used.length;i++){
-			System.out.println("p: "+i+" t: "+used[i]);
-		}
-		//
-		try{
-			ImageIO.write(res,"PNG",new File(opath));
-		}catch(Exception ex){};
 	}
 	
 	public BufferedImage inv(BufferedImage l){//try this only on strict bw
@@ -205,15 +135,11 @@ public class Compress {
 							}
 						}
 						if(sofar>best[0]){
-							best = new int[]{sofar,p+(i*patterns.length)};
+							best = new int[]{sofar,p};
 						}
 					}
 				}
-				if(best[1]<patterns.length){
-					g.drawImage(patterns[best[1]], tx*uni, ty*uni, null);
-				}else{
-					g.drawImage(inv(patterns[best[1]-patterns.length]), tx*uni, ty*uni, null);
-				}
+				g.drawImage(patterns[best[1]], tx*uni, ty*uni, null);
 			}
 		}
 		return l;
