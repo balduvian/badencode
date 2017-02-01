@@ -18,7 +18,7 @@ public class Compress {
 
 	BufferedImage[] patterns;
 	BufferedImage disp;
-	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\leaf-veins.jpg";
+	String path = "C:\\Users\\ecoughlin7190\\Desktop\\unnamed.png";
 	String opath;
 	int[][][] encode;
 	int[][][] git;
@@ -188,7 +188,7 @@ public class Compress {
 				}
 			}
 		}
-		
+
 		BufferedImage l = new BufferedImage(buf.length*uni,buf[0].length*uni,BufferedImage.TYPE_INT_RGB);
 		for(int ty=0;ty<buf.length;ty++){
 			for(int tx=0;tx<buf.length;tx++){
@@ -405,10 +405,10 @@ public class Compress {
 			c++;
 		}
 		
-		disp = ruct(new File("C:\\Users\\Emmett\\Desktop\\source - texture\\leaf-veinscomp.cpc"));
-		new Wind();
-		
 		//ytest();
+		
+		disp = ruct(new File("C:\\Users\\ecoughlin7190\\Desktop\\unnamedcomp.cpc"));
+		new Wind();
 	}
 	
 	public String[] bases(String s){
