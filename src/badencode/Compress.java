@@ -1,22 +1,77 @@
 package badencode;
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 public class Compress {
 
 	BufferedImage[] patterns;
-	BufferedImage origin;
-	BufferedImage after;
-	String path = "C:\\Users\\ecoughlin7190\\Desktop\\8.jpg";
+	BufferedImage disp;
+	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\leaf-veins.jpg";
 	String opath;
+	int[][][] encode;
+	int[][][] git;
 	int uni = 8;
+	
+	public String tolen(String s,int des){
+		String ss = s;
+		for(int i=0;i<des-ss.length();i++){
+			s = "0"+s;
+		}
+		return s;
+	}
+	
+	public void setencode(BufferedImage b){
+		encode = new int[b.getHeight()/uni][b.getWidth()/uni][3];
+	}
+	
+	public int compcolor(Color c){//from color to byte
+		String r = tolen(Integer.toBinaryString((int)Math.round((c.getRed()/255.0)*7)),3);
+		String g = tolen(Integer.toBinaryString((int)Math.round((c.getGreen()/255.0)*7)),3);
+		String b = tolen(Integer.toBinaryString((int)Math.round((c.getBlue()/255.0)*3)),2);
+		return todec(r+g+b);
+	}
+	
+	public int todec(String bin){//from binary to decimal
+		int t=0;
+		for(int i=0;i<bin.length();i++){
+			t += Character.getNumericValue(bin.charAt(i))*Math.pow(2, (bin.length()-i-1));
+		}
+		return t;
+	}
+	
+	public Color decon(int c){//from byte to color
+		String rgb = tolen(Integer.toBinaryString(c),8);
+		String[] csp = new String[3];
+		int[] csx = new int[3];
+		for(int i=0;i<csp.length;i++){
+			csp[i] = "";
+		}
+		for(int i=0;i<rgb.length();i++){
+			if(i<3){
+				csp[0] += rgb.charAt(i);
+			}else if(i<6){
+				csp[1] += rgb.charAt(i);
+			}else{
+				csp[2] += rgb.charAt(i);
+			}
+		}
+		for(int i=0;i<csx.length;i++){
+			csx[i] = todec(csp[i]);
+		}
+		return new Color((int)(csx[0]*(255.0/7)),(int)(csx[1]*(255.0/7)),(int)(csx[2]*(255.0/3)));
+	}
 	
 	public void loadImages(){
 		BufferedImage t = null;
@@ -82,6 +137,98 @@ public class Compress {
 		return l;
 	}
 	
+	public void writecomp(int[][][] hella){
+		String[] ba = bases(path);
+		File f = new File(ba[0]+ba[1]+"comp.cpc");
+		try{
+			FileOutputStream o = new FileOutputStream(f);
+			o.write(hella.length);
+			o.write(hella[0].length);
+			for(int y=0;y<hella.length;y++){
+				for(int x=0;x<hella[y].length;x++){
+					for(int z=0;z<hella[y][x].length;z++){
+						o.write(hella[y][x][z]);
+					}
+				}
+			}
+			o.close();
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
+	}
+	
+	public BufferedImage ruct(File f){
+		int[][][] buf = new int[0][0][0];
+		try{
+		FileInputStream io = new FileInputStream(f);
+		buf = new int[io.read()][io.read()][3];
+		int[] spc = new int[3];
+		while(io.available()>0){
+			buf[spc[0]][spc[1]][spc[2]] = io.read();
+			spc[2]++;
+			if(spc[2]==buf[0][0].length){
+				spc[2] = 0;
+				spc[1]++;
+				if(spc[1]==buf[0].length){
+					spc[1] = 0;
+					spc[2]++;
+					if(spc[2]==buf.length){
+						spc[2] = 0;
+					}
+				}
+			}
+		}
+		io.close();
+		}catch(Exception ex){}
+		
+		for(int y=0;y<buf.length;y++){
+			for(int x=0;x<buf[y].length;x++){
+				for(int z=0;z<buf[y][x].length;z++){
+					System.out.println(buf[y][x][z]);
+				}
+			}
+		}
+		
+		BufferedImage l = new BufferedImage(buf.length*uni,buf[0].length*uni,BufferedImage.TYPE_INT_RGB);
+		for(int ty=0;ty<buf.length;ty++){
+			for(int tx=0;tx<buf.length;tx++){
+				int p = buf[ty][tx][0];
+				int c0 = decon(buf[ty][tx][1]).getRGB();
+				int c1 = decon(buf[ty][tx][2]).getRGB();
+				for(int y=0;y<uni;y++){
+					for(int x=0;x<uni;x++){
+						if(patterns[p].getRGB(x, y)==-1){
+							l.setRGB(tx*uni+x, ty*uni+y, c0);
+						}else{
+							l.setRGB(tx*uni+x, ty*uni+y, c1);
+						}
+					}	
+				}
+			}	
+		}
+		return l;
+	}
+	
+	public class Wind extends JFrame{//WWWWWWWWWWIIIIIIIIIIINNNNNNNNNNNDDDDDDDDDDDDOOOOOOOOOOOOWWWWWWWWWWWWWWWW
+		Can can;
+		public Wind(){
+			can = new Can();
+			add(can);
+			setSize(640,480);
+			setVisible(true);
+		}
+		
+		public class Can extends JPanel{
+			public void paintComponent(Graphics g){
+				super.paintComponent(g);
+				try{
+					g.drawImage(disp, 0, 0, null);
+				}catch(Exception ex){}
+				repaint();
+			}
+		}
+	}
+	
 	public BufferedImage unihav(BufferedImage l){
 		for(int ty=0;ty<l.getHeight()/uni;ty++){
 			for(int tx=0;tx<l.getWidth()/uni;tx++){
@@ -140,6 +287,7 @@ public class Compress {
 					}
 				}
 				g.drawImage(patterns[best[1]], tx*uni, ty*uni, null);
+				encode[ty][tx][0] = best[1];//ENCODING
 			}
 		}
 		return l;
@@ -195,6 +343,8 @@ public class Compress {
 					}
 				}
 				Color[] sf = {new Color(sq[0][0],sq[0][1],sq[0][2]),new Color(sq[1][0],sq[1][1],sq[1][2])};
+				encode[ty][tx][1] = compcolor(sf[0]);//ENCODE
+				encode[ty][tx][2] = compcolor(sf[1]);//ENCODE
 				for(int y=0;y<uni;y++){
 					for(int x=0;x<uni;x++){
 						if(l.getRGB(tx*uni+x, ty*uni+y)==-1){
@@ -215,8 +365,9 @@ public class Compress {
 		try{
 			out = ImageIO.read(new File(path));
 		}catch(Exception ex){}
-
+		
 		out = uniscl(out);
+		setencode(out);
 		BufferedImage cmap = dcopy(out);
 		out = unihav(out);
 		out = patternize(out);
@@ -224,6 +375,7 @@ public class Compress {
 		try{
 			ImageIO.write(out,"PNG",new File(opath));
 		}catch(Exception ex){};
+		writecomp(encode);
 	}
 	
 	public void ltest(){
@@ -242,20 +394,21 @@ public class Compress {
 	
 	public Compress(){
 		loadImages();
-		try{
-			origin = ImageIO.read(new File(path));
-		}catch(Exception ex){}
-		String[] b = bases(path);
+
+		String[] ba = bases(path);
 		int c=0;
 		while(true){
-			opath = b[0]+b[1]+"-comp"+c+b[2];
+			opath = ba[0]+ba[1]+"-comp"+c+ba[2];
 			if(!new File(opath).exists()){
 				break;
 			}
 			c++;
 		}
-		ytest();
-		//ftest(true);
+		
+		disp = ruct(new File("C:\\Users\\Emmett\\Desktop\\source - texture\\leaf-veinscomp.cpc"));
+		new Wind();
+		
+		//ytest();
 	}
 	
 	public String[] bases(String s){
