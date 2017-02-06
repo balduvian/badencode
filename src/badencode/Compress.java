@@ -18,7 +18,7 @@ public class Compress {
 
 	BufferedImage[] patterns;
 	BufferedImage disp;
-	String path = "C:\\Users\\ecoughlin7190\\Desktop\\unnamed.png";
+	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\colorful.jpg";
 	String opath;
 	int[][][] encode;
 	int[][][] git;
@@ -31,6 +31,10 @@ public class Compress {
 		}
 		return s;
 	}
+	
+	//public int[] expand(int i){
+	//	
+	//}
 	
 	public void setencode(BufferedImage b){
 		encode = new int[b.getHeight()/uni][b.getWidth()/uni][3];
@@ -163,35 +167,30 @@ public class Compress {
 		FileInputStream io = new FileInputStream(f);
 		buf = new int[io.read()][io.read()][3];
 		int[] spc = new int[3];
-		while(io.available()>0){
+		while(!(spc[2] == 0 && spc[1] == 0 && spc[0] == 0 && io.available() == 0)){
 			buf[spc[0]][spc[1]][spc[2]] = io.read();
-			spc[2]++;
+			System.out.println(spc[0] + " " + spc[1] + " " + spc[2]);
+			
+			spc[2]++;//advance lever
 			if(spc[2]==buf[0][0].length){
 				spc[2] = 0;
 				spc[1]++;
 				if(spc[1]==buf[0].length){
 					spc[1] = 0;
-					spc[2]++;
-					if(spc[2]==buf.length){
-						spc[2] = 0;
+					spc[0]++;
+					if(spc[0]==buf.length){
+						spc[0] = 0;
 					}
 				}
 			}
+			
 		}
 		io.close();
 		}catch(Exception ex){}
-		
-		for(int y=0;y<buf.length;y++){
-			for(int x=0;x<buf[y].length;x++){
-				for(int z=0;z<buf[y][x].length;z++){
-					System.out.println(buf[y][x][z]);
-				}
-			}
-		}
 
-		BufferedImage l = new BufferedImage(buf.length*uni,buf[0].length*uni,BufferedImage.TYPE_INT_RGB);
+		BufferedImage l = new BufferedImage(buf[0].length*uni,buf.length*uni,BufferedImage.TYPE_INT_RGB);
 		for(int ty=0;ty<buf.length;ty++){
-			for(int tx=0;tx<buf.length;tx++){
+			for(int tx=0;tx<buf[0].length;tx++){
 				int p = buf[ty][tx][0];
 				int c0 = decon(buf[ty][tx][1]).getRGB();
 				int c1 = decon(buf[ty][tx][2]).getRGB();
@@ -405,10 +404,75 @@ public class Compress {
 			c++;
 		}
 		
+		//testdupe();
+		
 		//ytest();
 		
-		disp = ruct(new File("C:\\Users\\ecoughlin7190\\Desktop\\unnamedcomp.cpc"));
+		disp = ruct(new File("C:\\Users\\Emmett\\Desktop\\source - texture\\colorfulcomp.cpc"));
 		new Wind();
+	}
+	
+	public void testdupe(){
+		int bs = (int)(Math.sqrt(patterns.length)*uni);
+		int acr = (int)(Math.sqrt(patterns.length));
+		BufferedImage outp = new BufferedImage(bs,bs,BufferedImage.TYPE_INT_RGB);
+		for(int t=0;t<patterns.length;t++){
+				ploop: for(int i=0;i<patterns.length;i++){
+					int sy = (Math.round(t/acr)*uni);
+					int sx = t%acr*uni;
+					BufferedImage pnow = patterns[(sy/uni)*acr+(sx/uni)%acr];
+					for(int y=0;y<uni;y++){
+						for(int x=0;x<uni;x++){
+							outp.setRGB(sx+x, sy+y, pnow.getRGB(x,y));
+						}
+					}
+					
+					if(i!=t){
+						int reason = 2;
+						for(int n=0;n<2;n++){
+							if(n==1){
+								BufferedImage tymp = inv(patterns[i]);
+								saloop: for(int y=0;y<uni;y++){
+									for(int x=0;x<uni;x++){
+										if(tymp.getRGB(x, y) != patterns[t].getRGB(x, y)){
+											reason--;
+											break saloop;
+										}
+									}
+								}
+							}else{
+								saloop: for(int y=0;y<uni;y++){
+									for(int x=0;x<uni;x++){
+										if(patterns[i].getRGB(x, y) != patterns[t].getRGB(x, y)){
+											reason--;
+											break saloop;
+										}
+									}
+								}
+							}
+						}
+						
+						if(reason!=0){
+							int c = Color.RED.getRGB();
+							for(int y=0;y<uni;y++){
+								for(int x=0;x<uni;x++){
+									if(pnow.getRGB(x, y)==-16777216){
+										outp.setRGB(sx+x, sy+y, c);
+									}else{
+										outp.setRGB(sx+x, sy+y, -1);
+									}
+								}
+							}
+							break ploop;
+						}
+							
+					}
+				}
+		
+		}
+		try{
+			ImageIO.write(outp,"PNG",new File(opath));
+		}catch(Exception ex){}
 	}
 	
 	public String[] bases(String s){
