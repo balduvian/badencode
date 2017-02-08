@@ -18,11 +18,11 @@ public class Compress {
 
 	BufferedImage[] patterns;
 	BufferedImage disp;
-	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\colorful.jpg";
+	String path = "C:\\Users\\ecoughlin7190\\Desktop\\colorful.jpg";
 	String opath;
 	int[][][] encode;
 	int[][][] git;
-	int uni = 8;
+	final int uni = 8;
 	
 	public String tolen(String s,int des){
 		String ss = s;
@@ -259,6 +259,67 @@ public class Compress {
 		return res;
 	}
 	
+	public BufferedImage tricolore(BufferedImage b){
+		int h = (int)Math.ceil(b.getHeight()/uni);
+		int w = (int)Math.ceil(b.getWidth()/uni);
+		for(int ty=0;ty<h;ty++){
+			for(int tx=0;tx<w;tx++){
+				int[] cum = new int[3];
+				int[][][] cs = new int[uni][uni][2];
+				int t = 0;
+				for(int y=0;y<uni;y++){
+					for(int x=0;x<uni;x++){
+						try{
+							Color c =  new Color(b.getRGB(tx*uni+x, ty*uni+y));
+							int[] cv = {c.getRed(),c.getGreen(),c.getBlue()};
+							int[] best = new int[2]; //index -- how much
+							for(int i=0;i<3;i++){
+								if(cv[i]>best[1]){
+									best[0] = i;
+									best[1] = cv[i];
+								}
+							}
+							cs[y][x] = new int[]{best[0],cv[best[0]]};
+							cum[0] += cv[0];
+							cum[1] += cv[1];
+							cum[2] += cv[2];
+							t++;
+						}catch(Exception ex){}
+					}
+				}
+				int[] pos = {(cum[0]/(t)),(cum[1]/(t)),(cum[2]/(t))};
+				for(int y=0;y<uni;y++){
+					for(int x=0;x<uni;x++){
+						try{
+							if(cs[y][x].getRed()>=pos[0]){
+								b.setRGB(tx*uni+x, ty*uni+y, 0);
+							}else if(cs[y][x].getGreen()>=pos[1]){
+								b.setRGB(tx*uni+x, ty*uni+y, -1);
+							}else if(cs[y][x].getBlue()>=pos[2]){
+								b.setRGB(tx*uni+x, ty*uni+y, -8355712);
+							}else if(cs[y][x].getRed()<pos[0]){
+								b.setRGB(tx*uni+x, ty*uni+y, 0);
+							}else if(cs[y][x].getGreen()<pos[1]){
+								b.setRGB(tx*uni+x, ty*uni+y, -1);
+							}else if(cs[y][x].getBlue()<pos[2]){
+								b.setRGB(tx*uni+x, ty*uni+y, -8355712);
+							}
+						}catch(Exception ex){}
+					}
+				}
+			}
+		}
+		return b;
+	}
+	
+	public void makeImages(){
+		int[] universe = new int[256];
+		for(int i=0;i<universe.length;i++){
+			
+		}
+		
+	}
+	
 	public BufferedImage patternize(BufferedImage l){
 		Graphics2D g = l.createGraphics();
 		for(int ty=0;ty<l.getHeight()/uni;ty++){//tile x and y
@@ -365,16 +426,19 @@ public class Compress {
 			out = ImageIO.read(new File(path));
 		}catch(Exception ex){}
 		
-		out = uniscl(out);
+		/*out = uniscl(out);
 		setencode(out);
 		BufferedImage cmap = dcopy(out);
 		out = unihav(out);
 		out = patternize(out);
-		out = colorize(out,cmap);
+		out = colorize(out,cmap);*/
+		
+		out = tricolore(out);
+		
 		try{
 			ImageIO.write(out,"PNG",new File(opath));
 		}catch(Exception ex){};
-		writecomp(encode);
+		//writecomp(encode);
 	}
 	
 	public void ltest(){
@@ -406,10 +470,10 @@ public class Compress {
 		
 		//testdupe();
 		
-		//ytest();
+		ytest();
 		
-		disp = ruct(new File("C:\\Users\\Emmett\\Desktop\\source - texture\\colorfulcomp.cpc"));
-		new Wind();
+		//disp = ruct(new File("C:\\Users\\ecoughlin7190\\Desktop\\colorfulcomp.cpc"));
+		//new Wind();
 	}
 	
 	public void testdupe(){
