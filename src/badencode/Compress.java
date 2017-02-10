@@ -18,8 +18,8 @@ public class Compress {
 
 	BufferedImage[] patterns;
 	BufferedImage disp;
-	//String path = "C:\\Users\\ecoughlin7190\\Desktop\\colorful.jpg";
-	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\leaf-veins.jpg";
+	String path = "C:\\Users\\ecoughlin7190\\Desktop\\colorful.jpg";
+	//String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\leaf-veins.jpg";
 	String opath;
 	int[][][] encode;
 	int[][][] git;
@@ -283,7 +283,10 @@ public class Compress {
 			for(int cx=0;cx<cw;cx++){
 				int colors = 32; //amount of colors
 				int finc = 8; //final colors
+				
 				int[][] div = new int[colors][3]; //array of temp colors (stored in RGB)
+				int[][] comp = new int[colors][3];//compressed color array
+				int[][] fnal = new int[finc][3];//the final destination
 				for(int ty=0;ty<ppc;ty++){
 					for(int tx=0;tx<ppc;tx++){
 						for(int i=0;i<colors;i++){
@@ -295,17 +298,58 @@ public class Compress {
 								div[i] = comb(c,div[i]);
 							}
 						}
-						boolean[][][] space = new boolean[8][8][8];
-						for(int i=0;i<colors;i++){
-							for(int u=0;u<3;u++){
-								div[i][u] = (int)Math.round(((double)div[i][u]/255)*7);
+						int lvl = 8;//level of compression
+						int[][] initial = div.clone();
+						int[][] allowed = new int[colors][3];//setup initial allowed
+						superloop: while(true){//it's super
+							int pass = 0;//how many pass
+							boolean[][][] space = new boolean[lvl][lvl][lvl];//colorspace increasingly getting smaller
+							int alloc = 0;//index for where allowed next should go
+					
+							for(int i=0;i<colors;i++){
+								for(int u=0;u<3;u++){
+									comp[i][u] = (int)Math.round(((double)initial[i][u]/255)*(lvl-1));//compress
+								}
+								if(!space[comp[i][0]][comp[i][1]][comp[i][2]]){
+									allowed[alloc] = initial[i];//transfer from initial into allowed
+									alloc++;//advance lever
+									space[comp[i][0]][comp[i][1]][comp[i][2]] = true;//fill up space
+									pass++;//one passed!
+								}
 							}
-							if(!space[div[i][0]][div[i][1]][div[i][2]]){
-								space[div[i][0]][div[i][1]][div[i][2]] = true;
+							
+							//do some preparations
+							int[][] temp = new int[pass][3];
+							for(int i=0;i<pass;i++){
+								temp[i] = allowed[i];
 							}
+							initial = temp.clone();//get all ready in initial for next round
+							allowed = new int[pass][3];//reset allowed to it's new size, prep for next time around
+							lvl--;//decrease level
+							
+							if(pass<=finc){//is it done???
+								for(int i=0;i<pass;i++){//write to final
+									fnal[i] = initial[i];//intial would have all that i need (from setup above)
+								}
+								break superloop;//get outta here
+							}
+							
 						}
 					}
 				}
+				
+				for(int i=0;i<finc;i++){
+					String trp = "";
+					for(int u=0;u<3;u++){
+						trp += fnal[i][u]+" ";
+					}
+					System.out.println(trp);
+				}
+				
+				try{
+					Thread.sleep(3242433);//JUST GOT BEANED
+				}catch(Exception ex){}
+				
 				for(int ty=0;ty<chl;ty++){
 					for(int tx=0;tx<cwl;tx++){
 						int[] gw = new int[3];
@@ -541,7 +585,7 @@ public class Compress {
 	}
 	
 	public Compress(){
-		loadImages();
+		//loadImages();
 
 		String[] ba = bases(path);
 		int c=0;
