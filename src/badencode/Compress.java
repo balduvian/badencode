@@ -18,7 +18,8 @@ public class Compress {
 
 	BufferedImage[] patterns;
 	BufferedImage disp;
-	String path = "C:\\Users\\ecoughlin7190\\Desktop\\colorful.jpg";
+	//String path = "C:\\Users\\ecoughlin7190\\Desktop\\colorful.jpg";
+	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\leaf-veins.jpg";
 	String opath;
 	int[][][] encode;
 	int[][][] git;
@@ -259,9 +260,86 @@ public class Compress {
 		return res;
 	}
 	
+	public int sim(int[] a, int[] b){//returns how similar colors are smaller number, more similar;
+		return Math.abs(a[0]-b[0]) + Math.abs(a[1]-b[1]) + Math.abs(a[2]-b[2]);
+	}
+	
+	public int[] comb(int[] a,int[] b){//returns an average of two colors;;; ; ;
+		return new int[]{(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2};
+	}
+	
+	public BufferedImage fourtwo(BufferedImage b){
+		int t = uni/4;
+		int l = uni/2;
+		int ppc = uni*4; //32 pixels per chunk    32*32 = 1024 total pixels
+		int chl = (ppc)/t;
+		int cwl = (ppc)/l;
+		int h = (int)Math.ceil((double)b.getHeight()/t);
+		int w = (int)Math.ceil((double)b.getWidth()/l);
+		int ch = (int)Math.ceil((double)h/chl);
+		int cw = (int)Math.ceil((double)w/cwl);
+		
+		for(int cy=0;cy<ch;cy++){
+			for(int cx=0;cx<cw;cx++){
+				int colors = 32; //amount of colors
+				int finc = 8; //final colors
+				int[][] div = new int[colors][3]; //array of temp colors (stored in RGB)
+				for(int ty=0;ty<ppc;ty++){
+					for(int tx=0;tx<ppc;tx++){
+						for(int i=0;i<colors;i++){
+							Color cst = new Color(b.getRGB(cy*ppc+ty, cy*ppc+ty));
+							int[] c = new int[]{cst.getRed(),cst.getGreen(),cst.getBlue()};
+							if(div[i]==null){
+								div[i] = c;
+							}else if(sim(c,div[i])<50){
+								div[i] = comb(c,div[i]);
+							}
+						}
+						boolean[][][] space = new boolean[8][8][8];
+						for(int i=0;i<colors;i++){
+							for(int u=0;u<3;u++){
+								div[i][u] = (int)Math.round(((double)div[i][u]/255)*7);
+							}
+							if(!space[div[i][0]][div[i][1]][div[i][2]]){
+								space[div[i][0]][div[i][1]][div[i][2]] = true;
+							}
+						}
+					}
+				}
+				for(int ty=0;ty<chl;ty++){
+					for(int tx=0;tx<cwl;tx++){
+						int[] gw = new int[3];
+						int ti=0;
+						for(int y=0;y<t;y++){
+							for(int x=0;x<l;x++){
+								try{
+									Color c = new Color(b.getRGB(tx*l+x, ty*t+y));
+									gw[0] += c.getRed();
+									gw[1] += c.getGreen();
+									gw[2] += c.getBlue();
+									ti++;
+								}catch(Exception ex){}
+							}
+						}
+						int n = new Color(gw[0]/ti,gw[1]/ti,gw[2]/ti).getRGB();
+						for(int y=0;y<t;y++){
+							for(int x=0;x<l;x++){
+								try{
+									b.setRGB(tx*l+x, ty*t+y, n);
+								}catch(Exception ex){}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return b;
+	}
+	
 	public BufferedImage tricolore(BufferedImage b){
-		int h = (int)Math.ceil(b.getHeight()/uni);
-		int w = (int)Math.ceil(b.getWidth()/uni);
+		int h = (int)Math.ceil((double)b.getHeight()/uni);
+		int w = (int)Math.ceil((double)b.getWidth()/uni);
 		for(int ty=0;ty<h;ty++){
 			for(int tx=0;tx<w;tx++){
 				int[] cum = new int[3];
@@ -291,18 +369,24 @@ public class Compress {
 				for(int y=0;y<uni;y++){
 					for(int x=0;x<uni;x++){
 						try{
-							if(cs[y][x].getRed()>=pos[0]){
-								b.setRGB(tx*uni+x, ty*uni+y, 0);
-							}else if(cs[y][x].getGreen()>=pos[1]){
-								b.setRGB(tx*uni+x, ty*uni+y, -1);
-							}else if(cs[y][x].getBlue()>=pos[2]){
-								b.setRGB(tx*uni+x, ty*uni+y, -8355712);
-							}else if(cs[y][x].getRed()<pos[0]){
-								b.setRGB(tx*uni+x, ty*uni+y, 0);
-							}else if(cs[y][x].getGreen()<pos[1]){
-								b.setRGB(tx*uni+x, ty*uni+y, -1);
-							}else if(cs[y][x].getBlue()<pos[2]){
-								b.setRGB(tx*uni+x, ty*uni+y, -8355712);
+							if(cs[y][x][0]==0){
+								if(cs[y][x][1]>pos[0]){
+									b.setRGB(tx*uni+x,ty*uni+y,0);
+								}else{
+									b.setRGB(tx*uni+x,ty*uni+y,10000);
+								}
+							}else if(cs[y][x][0]==1){
+								if(cs[y][x][1]>pos[1]){
+									b.setRGB(tx*uni+x,ty*uni+y,10000);
+								}else{
+									b.setRGB(tx*uni+x,ty*uni+y,546365);
+								}
+							}else if(cs[y][x][0]==2){
+								if(cs[y][x][1]>pos[2]){
+									b.setRGB(tx*uni+x,ty*uni+y,546365);
+								}else{
+									b.setRGB(tx*uni+x,ty*uni+y,0);
+								}
 							}
 						}catch(Exception ex){}
 					}
@@ -433,7 +517,8 @@ public class Compress {
 		out = patternize(out);
 		out = colorize(out,cmap);*/
 		
-		out = tricolore(out);
+		//out = tricolore(out);
+		out = fourtwo(out);
 		
 		try{
 			ImageIO.write(out,"PNG",new File(opath));
