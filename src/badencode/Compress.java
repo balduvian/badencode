@@ -19,8 +19,8 @@ public class Compress {
 
 	BufferedImage[] patterns;
 	BufferedImage disp;
-	//String path = "C:\\Users\\ecoughlin7190\\Desktop\\colorful.jpg";
-	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\treeriver.jpg";
+	String path = "C:\\Users\\ecoughlin7190\\Desktop\\green.jpg";
+	//String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\treeriver.jpg";
 	String opath;
 	int[][][] encode;
 	int[][][] git;
@@ -72,14 +72,27 @@ public class Compress {
 		for(int i=0;i<des-upto;i++){//FIXXED
 			s = "0"+s;
 		}
-		/*for(int i=0;i<upto-des;i++){
-			String ret = "";
-			for(int u=0;u<upto- (upto - upto-(upto-des))*-1;u++){
-				ret += s.charAt(u);
-			}
-			s = ret;
-		}*/
 		return s;
+	}
+	  
+	public boolean[] tobinary(int v){
+		int al = (int)Math.floor(Math.log(v)/Math.log(2))+1;
+		boolean[] ayy = new boolean[al];
+		for(int i=0;i<al;i++){
+			int y = (v%2);
+			if(y==0){
+				ayy[i] = false;
+			}else{
+				ayy[i] = true;
+			}
+			v = v/2;
+		}
+		return ayy;
+	}
+	
+	public boolean[] roubin(boolean[] e, int v, int l){
+		
+		return e;
 	}
 	
 	public String doubin(int v, int l){//from int to x.x bytes...
@@ -152,6 +165,15 @@ public class Compress {
 		return new Color((int)(csx[0]*(255.0/7)),(int)(csx[1]*(255.0/7)),(int)(csx[2]*(255.0/3)));
 	}
 	
+	public int merge(int a, int b){
+		Color a0 =  new Color(a);
+		int[] a1 = {a0.getRed(),a0.getGreen(),a0.getBlue()};
+		Color b0 =  new Color(b);
+		int[] b1 = {b0.getRed(),b0.getGreen(),b0.getBlue()};
+		int[] c = comb(a1,b1);
+		return new Color(c[0],c[1],c[2]).getRGB();
+	}
+	
 	public boolean ditherand(int seed){
 		if(Math.random()>0.5){
 			return true;
@@ -188,15 +210,14 @@ public class Compress {
 		mark = 0;//reset mark
 		int ylim = getv(16);
 		int xlim = getv(16);
-		int uuni = getv(3);
 		int logfinc = getv(3);
 		int tmod = getv(2);
 		int lmod =  getv(2);
 		
-		uuni = (int)Math.pow(2,uuni);
 		int finc = (int)Math.pow(2,logfinc);
 		tmod = (int)Math.pow(2,tmod);
 		lmod = (int)Math.pow(2,lmod);
+		int uuni = uni;
 		
 		int t = uuni/tmod;//height of pixel
 		int l = uuni/lmod;//width of pixel
@@ -223,13 +244,14 @@ public class Compress {
 					for(int ty=0;ty<lll;ty++){
 						for(int tx=0;tx<www;tx++){
 							int cin = tempc[getv(newlog)];
-							for(int y=-1;y<t+1;y++){
-								for(int x=-1;x<l+1;x++){
+							for(int y=-1;y<t;y++){
+								for(int x=-1;x<l;x++){
 									try{
-										if(dither && (y==-1 || y==t+1 || x==-1 || x==l+1)){
-											if(ditherand((cx*ppc+tx*l+x)*15 + (cy*ppc+ty*t+y)*15)){
-												b.setRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y, cin);
-											}
+										if(dither && (y==-1 || x==-1 )){
+											b.setRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y, merge(b.getRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y),cin));
+											//if(ditherand((cx*ppc+tx*l+x)*15 + (cy*ppc+ty*t+y)*15)){
+											//	b.setRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y, cin);
+											//}
 										}else{
 											b.setRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y, cin);
 										}
@@ -263,7 +285,7 @@ public class Compress {
 		return todec(blo);
 	}
 	
-	public void writetri(String bin){
+	public void writetri(boolean[] bin){
 		String[] ba = bases(path);
 		int pg = 0;
 		File f = null;
@@ -276,11 +298,11 @@ public class Compress {
 		}
 		try{
 			FileOutputStream o = new FileOutputStream(f);
-			int tot = (int)Math.ceil((double)bin.length()/8);
+			int tot = (int)Math.ceil((double)bin.length/8);
 			for(int i=0;i<tot;i++){
-				String temp = "";
+				boolean[] temp = new boolean[8];
 				for(int u=0;u<8;u++){
-					temp += bin.charAt(i*8+u)+"";
+					temp[u] = bin[i*8+u];
 				}
 				int wrn = todec(temp);
 				o.write(wrn);
@@ -341,19 +363,18 @@ public class Compress {
 		return stab;
 	}
 	
-	public void fourtwo(BufferedImage b){ //make bufferedimage for resampling
+	public void fourtwo(BufferedImage b){ //create tri file
 		int xlim = b.getWidth();
 		int ylim = b.getHeight();
 		
 		int binfinc = (int)Math.ceil(Math.log(16)/Math.log(2));//how many bits to store for amount of colors
-		int binuni = (int)Math.ceil(Math.log(uni)/Math.log(2));//bit compression of uni
 		int btmod = (int)Math.ceil(Math.log(4)/Math.log(2));//you know how it goes
 		int blmod = (int)Math.ceil(Math.log(4)/Math.log(2));
 		
 		int tmod = (int)Math.pow(2, btmod);//get the values of these variables from the logs   ^
 		int lmod = (int)Math.pow(2, blmod);
 		int finc = (int)Math.pow(2, binfinc);
-		int uuni = (int)Math.pow(2, binuni);
+		int uuni = uni;
 				
 		int t = uuni/tmod;//height of pixel
 		int l = uuni/lmod;//width of pixel
@@ -365,11 +386,15 @@ public class Compress {
 		int ch = (int)Math.ceil((double)h/chl);//height of image in chunks
 		int cw = (int)Math.ceil((double)w/cwl);//width of image in chunks
 		
-		String binary = "";//OH BOI HERE WE GO
+		boolean[] bin = new boolean[39+(binfinc+12+(binfinc*finc)+(chl*cwl*binfinc))*ch*cw];
+		System.out.println(bin.length);
+		System.exit(0);
 		
+		String binary = "";
+		
+		//39 is bits per setup
 		binary += doubin(ylim,16);
 		binary += doubin(xlim,16);
-		binary += doubin(binuni,3);//similarly stored to finc  V
 		binary += doubin(binfinc,3);//store a value of how many colors per chunk, working in powers of two from 1 to 256 colors.
 		binary += doubin(btmod,2);//ok they're all stored like this
 		binary += doubin(blmod,2);
@@ -567,10 +592,29 @@ public class Compress {
 				}
 			}
 		}
-		writetri(binary);
+	//	writetri(binary);
+	}
+	
+	public void dispb(boolean[] b){
+		int l = b.length;
+		for(int i=0;i<l;i++){
+			if(b[i]){
+				System.out.print("1");
+			}else{
+				System.out.print("0");
+			}
+		}
+		System.out.print("\n");
 	}
 	
 	public Compress(){
+		
+		//dispb(tobinary(0));
+		dispb(tobinary(1));
+		dispb(tobinary(255));
+		dispb(tobinary(2));
+		
+		System.exit(0);
 		
 		BufferedImage out = null;
 		try{
@@ -578,9 +622,10 @@ public class Compress {
 		}catch(Exception ex){}
 		fourtwo(out);
 		
-		disp = readtri("C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\treeriver0.tri");
+		//disp = readtri("C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\treeriver0.tri");
+		disp = readtri("C:\\Users\\ecoughlin7190\\Desktop\\green2.tri");
 		new Wind();
-		//savedisp();
+		savedisp();
 	}
 	
 	public void savedisp(){
