@@ -10,6 +10,7 @@ import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Date;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -19,8 +20,8 @@ public class Compress {
 
 	BufferedImage[] patterns;
 	BufferedImage disp;
-	String path = "C:\\Users\\ecoughlin7190\\Desktop\\green.jpg";
-	//String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\treeriver.jpg";
+	//String path = "C:\\Users\\ecoughlin7190\\Desktop\\green.jpg";
+	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\eye.jpg";
 	String opath;
 	int[][][] encode;
 	int[][][] git;
@@ -76,18 +77,38 @@ public class Compress {
 	}
 	  
 	public boolean[] tobinary(int v){
-		int al = (int)Math.floor(Math.log(v)/Math.log(2))+1;
-		boolean[] ayy = new boolean[al];
-		for(int i=0;i<al;i++){
-			int y = (v%2);
-			if(y==0){
-				ayy[i] = false;
-			}else{
-				ayy[i] = true;
+		if(v==0){
+			return new boolean[1];
+		}else{
+			int al = (int)Math.floor(Math.log(v)/Math.log(2))+1;
+			boolean[] ayy = new boolean[al];
+			for(int i=al-1;i>=0;i--){
+				int y = (v%2);
+				if(y==0){
+					ayy[i] = false;
+				}else{
+					ayy[i] = true;
+				}
+				v = v/2;
 			}
-			v = v/2;
+			return ayy;
 		}
-		return ayy;
+	}
+	
+	public boolean[] tolen(boolean[] b, int l){//makes binary fit nicely, but better
+		int n = b.length;
+		if(l>n){
+			boolean[] adr = new boolean[l];
+			int mod = Math.abs(n-l);
+			for(int i=0;i<l;i++){
+				try{
+					adr[i]=b[i-mod];
+				}catch(Exception ex){}
+			}
+			return adr;
+		}else{
+			return b;
+		}
 	}
 	
 	public boolean[] roubin(boolean[] e, int v, int l){
@@ -99,11 +120,15 @@ public class Compress {
 		return tolen(Integer.toBinaryString(v),l);
 	}
 	
-	public String twelvebitrgb(int[] c){//ayy lmao
-		String r = tolen(Integer.toBinaryString((int)Math.round((c[0]/255.0)*15)),4);
-		String g = tolen(Integer.toBinaryString((int)Math.round((c[1]/255.0)*15)),4);
-		String b = tolen(Integer.toBinaryString((int)Math.round((c[2]/255.0)*15)),4);
-		return r+g+b;
+	public boolean[] nbitrgb(int[] c, int n){//ayy lmao
+		boolean[][] rgb = {tolen(tobinary((int)Math.round((c[0]/255.0)*15)),n),tolen(tobinary((int)Math.round((c[1]/255.0)*15)),n),tolen(tobinary((int)Math.round((c[2]/255.0)*15)),n)};
+		boolean[] sx = new boolean[n*3];
+		for(int i=0;i<3;i++){
+			for(int u=0;u<n;u++){
+				sx[i*n+u] = rgb[i][u];
+			}
+		}
+		return sx;
 	}
 	
 	public int compcolor(Color c){//from color to byte
@@ -189,7 +214,7 @@ public class Compress {
 	boolean[] dong;
 	public BufferedImage readtri(String url){//READ TRI
 		
-		boolean dither = true;
+		boolean dither = false;
 		
 		File f = new File(url);
 		try{
@@ -208,9 +233,10 @@ public class Compress {
 		}catch(Exception ex){}
 		
 		mark = 0;//reset mark
-		int ylim = getv(16);
-		int xlim = getv(16);
+		int ylim = getv(16)+1;
+		int xlim = getv(16)+1;
 		int logfinc = getv(3);
+		int cco = getv(3)+1;//get color compression and increase it
 		int tmod = getv(2);
 		int lmod =  getv(2);
 		
@@ -234,9 +260,9 @@ public class Compress {
 			for(int cx=0;cx<cw;cx++){
 				try{
 					int[] tempc = new int[finc];
-					int numc = getv(logfinc)+1;
+					int numc = getv(logfinc)+1;//num color logfinc
 					for(int i=0;i<numc;i++){
-						tempc[i] = twelvecon(getb(12));
+						tempc[i] = twelvecon(getb(cco*3));//actual color cco*3
 					}
 					int newlog = (int)Math.ceil(Math.log(numc)/Math.log(2));
 					int lll = getv(6)+1;
@@ -248,10 +274,10 @@ public class Compress {
 								for(int x=-1;x<l;x++){
 									try{
 										if(dither && (y==-1 || x==-1 )){
-											b.setRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y, merge(b.getRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y),cin));
-											//if(ditherand((cx*ppc+tx*l+x)*15 + (cy*ppc+ty*t+y)*15)){
-											//	b.setRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y, cin);
-											//}
+											//b.setRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y, merge(b.getRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y),cin));
+											if(ditherand((cx*ppc+tx*l+x)*15 + (cy*ppc+ty*t+y)*15)){
+												b.setRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y, cin);
+											}
 										}else{
 											b.setRGB(cx*ppc+tx*l+x, cy*ppc+ty*t+y, cin);
 										}
@@ -285,7 +311,7 @@ public class Compress {
 		return todec(blo);
 	}
 	
-	public void writetri(boolean[] bin){
+	public void writetri(boolean[] bin, int acc){//acc is number of bits actually used, passed along
 		String[] ba = bases(path);
 		int pg = 0;
 		File f = null;
@@ -298,7 +324,7 @@ public class Compress {
 		}
 		try{
 			FileOutputStream o = new FileOutputStream(f);
-			int tot = (int)Math.ceil((double)bin.length/8);
+			int tot = (int)Math.ceil(acc/8.0);
 			for(int i=0;i<tot;i++){
 				boolean[] temp = new boolean[8];
 				for(int u=0;u<8;u++){
@@ -363,11 +389,33 @@ public class Compress {
 		return stab;
 	}
 	
+	public void sendv(int s, int l){
+		boolean[] snt = tolen(tobinary(s),l);
+		for(int i=0;i<l;i++){
+			bin[bindex] = snt[i];
+			bindex++;
+		}
+	}
+	
+	public void sendd(boolean[] s, int l){
+		boolean[] snt = tolen(s,l);
+		for(int i=0;i<l;i++){
+			bin[bindex] = snt[i];
+			bindex++;
+		}
+	}
+	
+	boolean[] bin;//BINARY
+	int bindex;//bin index
+	
 	public void fourtwo(BufferedImage b){ //create tri file
+		
+		long d = new Date().getTime();//timing
+		
 		int xlim = b.getWidth();
 		int ylim = b.getHeight();
 		
-		int binfinc = (int)Math.ceil(Math.log(16)/Math.log(2));//how many bits to store for amount of colors
+		int binfinc = (int)Math.ceil(Math.log(32)/Math.log(2));//how many bits to store for amount of colors
 		int btmod = (int)Math.ceil(Math.log(4)/Math.log(2));//you know how it goes
 		int blmod = (int)Math.ceil(Math.log(4)/Math.log(2));
 		
@@ -375,7 +423,8 @@ public class Compress {
 		int lmod = (int)Math.pow(2, blmod);
 		int finc = (int)Math.pow(2, binfinc);
 		int uuni = uni;
-				
+		int cco = 4;//compression level of colors * this by 3 to get bits per color (4 >> 12) (8 >> 24)
+		
 		int t = uuni/tmod;//height of pixel
 		int l = uuni/lmod;//width of pixel
 		int ppc = uuni*4; // actual pixels per chuck (32 for uni 8)
@@ -386,18 +435,16 @@ public class Compress {
 		int ch = (int)Math.ceil((double)h/chl);//height of image in chunks
 		int cw = (int)Math.ceil((double)w/cwl);//width of image in chunks
 		
-		boolean[] bin = new boolean[39+(binfinc+12+(binfinc*finc)+(chl*cwl*binfinc))*ch*cw];
-		System.out.println(bin.length);
-		System.exit(0);
+		bin = new boolean[(42+(binfinc+12+(finc*cco*3)+(chl*cwl*binfinc))*ch*cw)];
+		bindex = 0;
 		
-		String binary = "";
-		
-		//39 is bits per setup
-		binary += doubin(ylim,16);
-		binary += doubin(xlim,16);
-		binary += doubin(binfinc,3);//store a value of how many colors per chunk, working in powers of two from 1 to 256 colors.
-		binary += doubin(btmod,2);//ok they're all stored like this
-		binary += doubin(blmod,2);
+		//42 is bits per setup
+		sendv(ylim-1,16);
+		sendv(xlim-1,16);
+		sendv(binfinc,3);//store a value of how many colors per chunk, working in powers of two from 1 to 256 colors.
+		sendv(cco-1,3);//store compression level of colors (not logged)
+		sendv(btmod,2);//ok they're all stored like this
+		sendv(blmod,2);
 		
 		for(int cy=0;cy<ch;cy++){//for each chunk
 			for(int cx=0;cx<cw;cx++){
@@ -495,22 +542,9 @@ public class Compress {
 						}
 					}
 					
-					//do some preparations
-					int opass = pass;//an undisturbed pass;
-					int tne = finc-pass;//how many times temp needs to be refilled
-					if(pass<finc){//first to set up temp length to not be too short (8);
-						pass = finc;
-					}
 					int[][] temp = new int[pass][3];
 					for(int i=0;i<pass;i++){
 						temp[i] = allowed[i];
-					}
-					for(int i=0;i<tne;i++){//for how many it needs to fill
-						try{
-							temp[opass+i] = forbidden[i];//fill at that loc with a previously forbidden color
-						}catch(Exception ex){
-							temp[opass+i] = new int[]{0,0,0};
-						}
 					}
 					initial = temp.clone();//get all ready in initial for next round
 					allowed = new int[pass][3];//reset allowed to it's new size, prep for next time around
@@ -575,24 +609,27 @@ public class Compress {
 				}
 				
 				//write (NEW)colors to binary
-				binary += doubin(cused-1,binfinc);//write how many colors
+				sendv(cused-1,binfinc);//write how many colors
 				for(int i=0;i<cused;i++){
-					binary += twelvebitrgb(newcolor[i]);
+					sendd(nbitrgb(newcolor[i],cco),cco*3);
 				}
-				binary += doubin(ybound-1,6);//write the bounds
-				binary += doubin(xbound-1,6);
+				sendv(ybound-1,6);//write the bounds
+				sendv(xbound-1,6);
 				
 				int newfinc = (int)Math.ceil(Math.log(cused)/Math.log(2));//how many bits to store NEW colors
 
 				//third runthrough to put colors in
 				for(int ty=0;ty<ybound;ty++){
 					for(int tx=0;tx<xbound;tx++){
-						binary += doubin(liberty[ty][tx],newfinc);//write the color
+						sendv(liberty[ty][tx],newfinc);//write the color
 					}
 				}
 			}
 		}
-	//	writetri(binary);
+		
+		System.out.println(new Date().getTime()-d);
+		
+		writetri(bin,bindex);
 	}
 	
 	public void dispb(boolean[] b){
@@ -609,21 +646,14 @@ public class Compress {
 	
 	public Compress(){
 		
-		//dispb(tobinary(0));
-		dispb(tobinary(1));
-		dispb(tobinary(255));
-		dispb(tobinary(2));
-		
-		System.exit(0);
-		
 		BufferedImage out = null;
 		try{
 			out = ImageIO.read(new File(path));
 		}catch(Exception ex){}
 		fourtwo(out);
 		
-		//disp = readtri("C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\treeriver0.tri");
-		disp = readtri("C:\\Users\\ecoughlin7190\\Desktop\\green2.tri");
+		disp = readtri("C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\eye0.tri");
+		//disp = readtri("C:\\Users\\ecoughlin7190\\Desktop\\green2.tri");
 		new Wind();
 		savedisp();
 	}
