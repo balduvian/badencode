@@ -9,7 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Date;
 
-import javax.imageio.ImageIO;
+import javax.imageio.ImageIO;//dssad
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
