@@ -3,10 +3,7 @@ package badencode;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -20,8 +17,8 @@ public class Compress {
 
 	BufferedImage[] patterns;
 	BufferedImage disp;
-	//String path = "C:\\Users\\ecoughlin7190\\Desktop\\green.jpg";
-	String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\eye.jpg";
+	String path = "C:\\Users\\ecoughlin7190\\Desktop\\name.jpg";
+	//String path = "C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\green.jpg";
 	String opath;
 	int[][][] encode;
 	int[][][] git;
@@ -214,7 +211,7 @@ public class Compress {
 	boolean[] dong;
 	public BufferedImage readtri(String url){//READ TRI
 		
-		boolean dither = false;
+		boolean dither = true;
 		
 		File f = new File(url);
 		try{
@@ -652,7 +649,7 @@ public class Compress {
 		}catch(Exception ex){}
 		fourtwo(out);
 		
-		disp = readtri("C:\\Users\\Emmett\\Desktop\\source - texture\\compress\\eye0.tri");
+		disp = readtri("C:\\Users\\ecoughlin7190\\Desktop\\name0.tri");
 		//disp = readtri("C:\\Users\\ecoughlin7190\\Desktop\\green2.tri");
 		new Wind();
 		savedisp();
